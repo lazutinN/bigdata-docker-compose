@@ -8,18 +8,19 @@ services:
     hostname: namenode
 
 # Сначала запусти меня
-#    command: ["hdfs", "namenode", "-format", "-force"]
+    #command: ["hdfs", "namenode", "-format", "-force"]
 # А уже потом спокойно запускай меня
-    command: ["hdfs", "namenode"]
+    command: ["hdfs", "namenode", "-format", "-force"]
     env_file:
       - ./hadoop.env
     ports:
       - 9870:9870
+      - 9000:9000
     volumes:
       - hadoop_namenode:/tmp/hadoop-root/
       - ./hadoop_conf/etc:/opt/hadoop/etc
 
-  datanode1:
+  datanode:
     build:
       context: hadoop/.
       target: build_hadoop
@@ -29,6 +30,8 @@ services:
       - ./hadoop.env
     ports:
       - 9864:9864
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
     volumes:
       - hdfs1:/tmp/hadoop-hadoop
       - ./hadoop_conf/etc:/opt/hadoop/etc
@@ -39,8 +42,12 @@ services:
       target: build_hadoop
     hostname: resourcemanager
     command: ["yarn", "resourcemanager"]
+    env_file:
+      - ./hadoop.env
     ports:
       - 8088:8088
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
     volumes:
       - resourcemanager:/tmp/hadoop-hadoop
       - ./hadoop_conf/etc:/opt/hadoop/etc
@@ -51,6 +58,8 @@ services:
       target: build_hadoop
     hostname: nodemanager1
     command: ["yarn", "nodemanager"]
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
     ports:
       - 19888:19888
       - 8042:8042
@@ -61,27 +70,15 @@ services:
       - nodemanager1:/tmp/hadoop-hadoop
       - ./hadoop_conf/etc:/opt/hadoop/etc
 
-  postgres:
-    image: postgres:10
-    hostname: postgres
-    environment:
-      POSTGRES_DB: 'metastore_db'
-      POSTGRES_USER: 'hive'
-      POSTGRES_PASSWORD: 'password'
-    ports:
-      - '5432:5432'
-    volumes:
-      - hive-db:/var/lib/postgresql
-
   metastore:
     build:
       context: hadoop/.
       target: hive_hadoop
     hostname: metastore
     # Сначала запусти меня
-    #    command: ["schematool", "--dbType", "postgres", "--initSchema"]
+    command: ["schematool", "--dbType", "postgres", "--initSchema"]
     # А уже потом спокойно запускай меня
-    command: [ "hive", "--service", "metastore" ]
+    #command: [ "hive", "--service", "metastore" ]
     environment:
       - HIVE_SERVER2_THRIFT_PORT=10000
     ports:
@@ -92,22 +89,6 @@ services:
       - ./hadoop_conf/etc:/opt/hadoop/etc
       - ./hive_conf:/opt/hive/conf
 
-  hiveserver2:
-    build:
-      context: hadoop/.
-      target: hive_hadoop
-    environment:
-      - HIVE_SERVER2_THRIFT_PORT=10000
-    command: [ "hive", "--service", "hiveserver2" , "--hiveconf", "hive.root.logger=INFO,console"]
-    ports:
-      - 10000:10000
-      - 10002:10002
-    expose:
-      - 10000
-      - 10002
-    volumes:
-      - ./hadoop_conf/etc:/opt/hadoop/etc
-      - ./hive_conf:/opt/hive/conf
 
   jupyter:
     build:
@@ -120,20 +101,6 @@ services:
     volumes:
       - ./hadoop_conf/etc:/opt/hadoop/etc
     command: ["jupyter", "notebook", "--allow-root", "--ip", "0.0.0.0"]
-
-#  Вот этого монстра запускай на свой страх и риск
-#  zeppelin:
-#    build:
-#      context: hadoop/.
-#      target: zeppelin_hadoop
-#    env_file:
-#      - ./hadoop.env
-#    ports:
-#      - 8080:8080
-#    volumes:
-#      - ./hadoop_conf/etc:/opt/hadoop/etc
-#      - ./hive_conf:/opt/hive/conf
-#    command: ["bash", "/opt/zeppelin/bin/zeppelin.sh"]
 
 networks:
   default:
