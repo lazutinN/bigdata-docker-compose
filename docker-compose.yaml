@@ -6,11 +6,10 @@ services:
       context: hadoop/.
       target: build_hadoop
     hostname: namenode
-
 # Сначала запусти меня
     #command: ["hdfs", "namenode", "-format", "-force"]
 # А уже потом спокойно запускай меня
-    command: ["hdfs", "namenode", "-format", "-force"]
+    command: ["hdfs", "namenode"]
     env_file:
       - ./hadoop.env
     ports:
@@ -20,11 +19,11 @@ services:
       - hadoop_namenode:/tmp/hadoop-root/
       - ./hadoop_conf/etc:/opt/hadoop/etc
 
-  datanode:
+  datanode1:
     build:
       context: hadoop/.
       target: build_hadoop
-    hostname: datanode
+    hostname: datanode1
     command: ["hdfs", "datanode"]
     env_file:
       - ./hadoop.env
@@ -70,25 +69,6 @@ services:
       - nodemanager1:/tmp/hadoop-hadoop
       - ./hadoop_conf/etc:/opt/hadoop/etc
 
-  metastore:
-    build:
-      context: hadoop/.
-      target: hive_hadoop
-    hostname: metastore
-    # Сначала запусти меня
-    command: ["schematool", "--dbType", "postgres", "--initSchema"]
-    # А уже потом спокойно запускай меня
-    #command: [ "hive", "--service", "metastore" ]
-    environment:
-      - HIVE_SERVER2_THRIFT_PORT=10000
-    ports:
-      - 9083:9083
-    expose:
-      - 9083
-    volumes:
-      - ./hadoop_conf/etc:/opt/hadoop/etc
-      - ./hive_conf:/opt/hive/conf
-
 
   jupyter:
     build:
@@ -107,9 +87,7 @@ networks:
     name: yohoho
 
 volumes:
-  hive-db:
   hdfs1:
   resourcemanager:
   nodemanager1:
   hadoop_namenode:
-
