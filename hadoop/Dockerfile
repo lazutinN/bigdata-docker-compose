@@ -35,7 +35,7 @@ ENV HADOOP_HOME /opt/hadoop
 ENV PATH $PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 
 # fix WARN NativeCodeLoader: Unable to load native-hadoop library for your platform...
-ENV LD_LIBRARY_PATH $HADOOP_HOME/lib/native/
+ENV LD_LIBRARY_PATH $HADOOP_HOME/lib/native
 ENV HADOOP_CONF_DIR $HADOOP_HOME/etc/hadoop
 
 
@@ -43,7 +43,4 @@ FROM build_hadoop_base AS build_hadoop
 
 FROM build_hadoop_base AS jupyter_hadoop
 WORKDIR /opt
-
-RUN apt-get update -y \
-    && apt-get install -y python3-pip
 RUN pip3 install notebook
