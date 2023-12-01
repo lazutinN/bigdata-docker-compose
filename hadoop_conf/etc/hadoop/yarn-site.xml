@@ -15,11 +15,11 @@
   </value>
 </property>
 
-<property><name>yarn.log-aggregation-enable</name><value>true</value></property>
+<property><name>yarn.log-aggregation-enable</name><value>false</value></property>
 <property><name>yarn.log.server.url</name><value>http://historyserver:8188/applicationhistory/logs/</value></property>
-<property><name>yarn.timeline-service.enabled</name><value>true</value></property>
+<property><name>yarn.timeline-service.enabled</name><value>false</value></property>
 <property><name>yarn.timeline-service.hostname</name><value>historyserver</value></property>
-<property><name>yarn.timeline-service.generic-application-history.enabled</name><value>true</value></property>
+<property><name>yarn.timeline-service.generic-application-history.enabled</name><value>false</value></property>
 
 <property><name>yarn.nodemanager.pmem-check-enabled</name><value>false</value></property>
 <property><name>yarn.nodemanager.delete.debug-delay-sec</name><value>600</value></property>
