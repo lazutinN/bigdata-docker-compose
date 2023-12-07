@@ -1,6 +1,21 @@
 version: "3.8"
 
 services:
+  namenode_init:
+    build:
+      context: hadoop/.
+      target: build_hadoop
+    hostname: namenode
+# Сначала запусти меня
+    #command: ["hdfs", "namenode", "-format", "-force"]
+# А уже потом спокойно запускай меня
+    command: ["hdfs", "namenode", "-format", "-force"]
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - hadoop_namenode:/tmp/hadoop-root/
+      - ./hadoop_conf/etc:/opt/hadoop/etc
+
   namenode:
     build:
       context: hadoop/.
@@ -17,6 +32,8 @@ services:
     volumes:
       - hadoop_namenode:/tmp/hadoop-root/
       - ./hadoop_conf/etc:/opt/hadoop/etc
+    depends_on:
+      - namenode_init
 
   datanode1:
     build:
@@ -28,8 +45,6 @@ services:
       - ./hadoop.env
     ports:
       - 9864:9864
-    environment:
-      SERVICE_PRECONDITION: "namenode:9870"
     volumes:
       - hdfs1:/tmp/hadoop-hadoop
       - ./hadoop_conf/etc:/opt/hadoop/etc
@@ -44,8 +59,6 @@ services:
       - ./hadoop.env
     ports:
       - 8088:8088
-    environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
     volumes:
       - resourcemanager:/tmp/hadoop-hadoop
       - ./hadoop_conf/etc:/opt/hadoop/etc
@@ -56,8 +69,8 @@ services:
       target: build_hadoop
     hostname: nodemanager1
     command: ["yarn", "nodemanager"]
-    environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
     ports:
       - 19888:19888
       - 8042:8042

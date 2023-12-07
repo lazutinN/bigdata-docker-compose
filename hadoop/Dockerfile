@@ -1,4 +1,4 @@
-FROM amd64/ubuntu:latest AS build_base
+FROM ubuntu:latest AS build_base
 
 RUN apt-get update -y \
     && apt-get install -y openjdk-8-jdk \
@@ -26,11 +26,13 @@ RUN ln -sf /opt/hadoop-3.3.6 /opt/hadoop
 RUN apt-get update -y \
     && apt-get install -y python3-pip
 
+RUN pip3 install pyspark numpy pandas pyarrow scikit-learn
+
 RUN mkdir -p /tmp/hadoop-hadoop
 
 WORKDIR /opt/hadoop
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-arm64
 ENV HADOOP_HOME /opt/hadoop
 ENV PATH $PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 
